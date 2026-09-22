@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Medellín "Te Quiere" Desalojar, Manrique - Versión 3.1</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <style>
+        body { transition: background-color 1.5s ease, color 1.5s ease; }
+        #fondo-escenario {
+            transition: background-image 1.5s ease, filter 1.5s ease;
+        }
+    </style>
+</head>
+<body id="cuerpo-app" class="bg-neutral-950 text-neutral-100 min-h-screen flex flex-col justify-between relative overflow-x-hidden">
+
+    <!-- Fondo de Escenario Dinámico (Pantalla Completa) -->
+    <div id="fondo-escenario" class="absolute inset-0 pointer-events-none bg-cover bg-center opacity-60 transition-all duration-1000" style="background-image: url('img/InicioDespejado.png');"></div>
+
+    <!-- Elemento de Audio Ambiente de Fondo (Lluvia / Despejado) -->
+    <audio id="audio-ambiente" loop preload="auto"></audio>
+
+    <!-- PANTALLA INICIAL DE PRESENTACIÓN Y AUTORIZACIÓN DE AUDIO -->
+    <div id="pantalla-inicio" class="fixed inset-0 z-50 bg-cover bg-center bg-no-repeat flex items-center justify-center p-6 transition-opacity duration-700" style="background-image: url('img/Portada.jpg');">
+        <div class="max-w-xl w-full bg-neutral-900 border border-neutral-800 p-8 rounded-3xl shadow-2xl text-center">
+            <span class="text-xs font-mono text-cyan-400 uppercase tracking-widest block mb-3">Laboratorio de Convergencia Creativa: Virtualidad</span>
+            <h1 class="text-2xl md:text-3xl font-bold tracking-tight mb-4 text-neutral-100">Medellín "Te Quiere" Desalojar</h1>
+            <p class="text-neutral-300 leading-relaxed text-sm md:text-base mb-6 text-justify">
+                Este producto multimedia aborda el tema de las tensiones socioterritoriales, la amenaza de desalojos en lugares aledaños de la quebrada La Tebaida en Manrique (Brisas de Jardín), y los dilemas éticos que enfrentan tanto las comunidades vulnerables como los agentes de la fuerza pública en Medellín.
+            </p>
+            <div class="bg-neutral-950/60 border border-neutral-800/80 p-4 rounded-2xl mb-8 text-left text-sm text-neutral-400 space-y-1">
+                <p>• <strong>Entorno:</strong> Sincronización meteorológica en directo vía API.</p>
+                <p>• <strong>Interactividad:</strong> Decisiones ramificadas con análisis probabilístico.</p>
+                <p>• <strong>Inmersión:</strong> Paisaje sonoro continuo y efectos de audio.</p>
+            </div>
+            <button onclick="iniciarExperienciaMultimedia()" class="w-full py-4 bg-amber-500 hover:bg-amber-400 text-neutral-950 font-bold text-base rounded-2xl transition cursor-pointer shadow-lg tracking-wide">
+                Iniciar Experiencia Multimedia
+            </button>
+            <div class="mt-6 text-xs text-neutral-500">
+                JOSE DANIEL TOBÓN MONTOYA • Universidad de Antioquia 2026-2
+            </div>
+        </div>
+    </div>
+
+    <!-- HUD / Panel Superior Flotante -->
+    <header class="w-full max-w-6xl mx-auto mt-6 px-6 py-4 bg-neutral-900/85 border border-neutral-800 rounded-2xl flex flex-wrap justify-between items-center gap-6 shadow-2xl backdrop-blur-md z-10">
+        <div>
+            <span class="text-xs uppercase tracking-widest text-neutral-400 block mb-1">Perspectiva Activa:</span>
+            <span id="rol-actual" class="font-bold text-amber-500 text-lg">Selección de Personaje</span>
+        </div>
+        <div class="flex gap-6 md:gap-8 items-center">
+            <div>
+                <span class="text-xs text-neutral-400 block">Tensión:</span>
+                <span id="val-tension" class="font-mono text-xl font-bold text-amber-400">20</span>
+            </div>
+            <div>
+                <span class="text-xs text-neutral-400 block">Hostilidad:</span>
+                <span id="val-hostilidad" class="font-mono text-xl font-bold text-red-400">20</span>
+            </div>
+            <div>
+                <span class="text-xs text-neutral-400 block">Clima (Manrique):</span>
+                <span id="val-clima" class="font-mono text-sm text-cyan-400">Sincronizando API...</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Espacio Central Libre -->
+    <main class="flex-grow"></main>
+
+    <!-- Contenedor Principal Flotante -->
+    <section class="w-full max-w-6xl mx-auto p-6 md:p-8 z-10">
+        <div id="escena-contenedor" class="w-full bg-neutral-900/85 border border-neutral-800 p-6 md:p-8 rounded-3xl backdrop-blur-md shadow-2xl">
+            <h2 class="text-xl md:text-2xl font-bold tracking-tight mb-3 text-neutral-100">Selección de Perspectiva Narrativa</h2>
+            <p class="text-neutral-300 leading-relaxed mb-6 text-sm md:text-base">
+                Elige el rol desde el cual deseas afrontar los hechos en el barrio Brisas de Jardín:
+            </p>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <button onclick="reproducirEfecto('click'); seleccionarRol('habitante')" class="p-6 bg-neutral-900/90 hover:bg-neutral-800 border border-neutral-800 rounded-2xl text-left transition cursor-pointer hover:border-amber-500 shadow-lg">
+                    <h3 class="font-bold text-amber-400 text-lg mb-2">Doña Carmen</h3>
+                    <p class="text-sm text-neutral-300">Madre y abuela desplazada. Resistencia comunitaria y defensa del hogar.</p>
+                </button>
+                <button onclick="reproducirEfecto('click'); seleccionarRol('policia')" class="p-6 bg-neutral-900/90 hover:bg-neutral-800 border border-neutral-800 rounded-2xl text-left transition cursor-pointer hover:border-cyan-500 shadow-lg">
+                    <h3 class="font-bold text-cyan-400 text-lg mb-2">Subintendente Andrés</h3>
+                    <p class="text-sm text-neutral-300">Atrapado en el clasismo institucional y la presión de mandos superiores.</p>
+                </button>
+            </div>
+        </div>
+        <!-- Pie de página flotante -->
+        <footer class="w-full text-center text-xs text-neutral-400 mt-6 pt-3">
+            JOSE DANIEL TOBÓN MONTOYA
+            <br>
+            Pregrado en Creación Digital
+            <br>
+            Laboratorio de Convergencia Creativa: Virtualidad
+            <br>
+            Universidad de Antioquia 2026-2
+        </footer>
+    </section>
+
+    <!-- Sistema de Lógica, Clima API y Efectos Sonoros -->
+    <script>
+        const efectosSonoros = {
+            click: new Audio('audios/click.mp3'),
+            inicioRol: new Audio('audios/inicio.mp3'),
+            resistenciaActiva: new Audio('audios/ResistenciaActiva.mp3'),
+            resistenciaPacifica: new Audio('audios/Pacifica.mp3'),
+            confrontacion: new Audio('audios/panico.mp3'),
+            mediacion: new Audio('audios/Pacifica.mp3'),
+            concertacion: new Audio('audios/Pacifica.mp3'),
+            rupturaDialogo: new Audio('audios/panico.mp3'),
+            finalPositivo: new Audio('audios/FinalPositivo.mp3'),
+            finalNegativo: new Audio('audios/FinalNegativo.mp3')
+        };
+
+        let audioActivo = null;
+
+        function reproducirEfecto(nombreEfecto) {
+            if (audioActivo !== null) {
+                audioActivo.pause();
+                audioActivo.currentTime = 0;
+            }
+            if (efectosSonoros[nombreEfecto]) {
+                audioActivo = efectosSonoros[nombreEfecto].cloneNode();
+                audioActivo.volume = 0.7;
+                audioActivo.play().catch(error => {
+                    console.log("Reproducción de efecto omitida:", error);
+                });
+            }
+        }
+
+        let gameState = {
+            rol: null,
+            tensionSocial: 20,
+            hostilidad: 20,
+            esLluvia: false,
+            temperatura: 22,
+            climaTexto: "Analizando..."
+        };
+
+        // Función disparada por el botón de inicio (otorga el gesto de usuario necesario)
+        function iniciarExperienciaMultimedia() {
+            // 1. Ocultar pantalla de presentación
+            const pantallaInicio = document.getElementById('pantalla-inicio');
+            if (pantallaInicio) {
+                pantallaInicio.classList.add('hidden');
+            }
+
+            // 2. Cargar el fondo inicial de forma explícita
+            cambiarFondo('inicio');
+
+            // 3. Consultar clima y activar entorno
+            consultarClimaMedellin();
+        }
+
+        async function consultarClimaMedellin() {
+            try {
+                const response = await fetch('https://api.open-meteo.com/v1/forecast?latitude=6.2518&longitude=-75.5636&current=temperature_2m,precipitation,weather_code');
+                const data = await response.json();
+                
+                if(data && data.current) {
+                    gameState.temperatura = Math.round(data.current.temperature_2m);
+                    const precipitacion = data.current.precipitation;
+                    const wcode = data.current.weather_code;
+                    
+                    // FILTRO ESTRICTO: Solo es lluvia si el código WMO pertenece estrictamente a precipitaciones 
+                    // (51-67 y 80-99) Y la precipitación supera los 0.5 mm reales (evita falsos positivos por humedad).
+                    const esLluviaWMO = (wcode >= 51 && wcode <= 67) || (wcode >= 80 && wcode <= 99);
+                    gameState.esLluvia = (precipitacion > 0.5) && esLluviaWMO;
+                    
+                    // Forzamos coherencia si la temperatura es alta o el código es de cielo despejado (0, 1, 2)
+                    if (wcode === 0 || wcode === 1 || gameState.temperatura >= 24) {
+                        gameState.esLluvia = false;
+                    }
+                    
+                    if(gameState.esLluvia) {
+                        gameState.climaTexto = `Lluvia ${gameState.temperatura}°C (API Directa)`;
+                        configurarAmbienteClima(true);
+                    } else if (wcode === 2 || wcode === 3) {
+                        gameState.climaTexto = `Nublado ${gameState.temperatura}°C (API Directa)`;
+                        configurarAmbienteClima(false);
+                    } else {
+                        gameState.climaTexto = `Despejado y soleado ${gameState.temperatura}°C (API Directa)`;
+                        configurarAmbienteClima(false);
+                    }
+                }
+            } catch (error) {
+                console.warn("No se pudo conectar a la API de clima, usando modo local de respaldo.", error);
+                gameState.esLluvia = false;
+                gameState.climaTexto = "Brisa 22°C (Modo Local Respaldo)";
+                configurarAmbienteClima(false);
+            }
+            document.getElementById('val-clima').innerText = gameState.climaTexto;
+        }
+
+        function configurarAmbienteClima(esLluvia) {
+            const audioAmbiente = document.getElementById('audio-ambiente');
+            audioAmbiente.src = esLluvia ? 'audios/lluvia.mp3' : 'audios/despejado.mp3';
+            audioAmbiente.volume = 0.4;
+            audioAmbiente.play().catch(e => console.log("Audio ambiental reproducido."));
+
+            // Actualizamos la variante de clima correspondiente de forma limpia
+            if(esLluvia) {
+                imagenesEntorno.inicio.lluvia = "img/InicioLluvia.jpg";
+            } else {
+                imagenesEntorno.inicio.seco = 'img/InicioDespejado.png';
+            }
+            cambiarFondo('inicio');
+        }
+
+        // Banco de imágenes duales para cada escena (Lluvia vs Seco/Despejado)
+        const imagenesEntorno = {
+            inicio: {
+                seco: 'img/InicioDespejado.png',
+                lluvia: 'img/InicioLluvia.jpg'
+            },
+            habitanteInicio: {
+                seco: 'img/CarmenInicioDespejado.jpg',
+                lluvia: 'img/CarmenInicioLluvia.jpg'
+            },
+            policiaInicio: {
+                seco: 'img/PoliciaDespejado.jpg',
+                lluvia: 'img/PoliciaLluvia.jpg'
+            },
+            habitanteA: {
+                seco: 'img/CarmenADespejado.jpg',
+                lluvia: 'img/CarmenALluvia.jpg'
+            },
+            habitanteB: {
+                seco: 'img/CarmenBDespejado.jpg',
+                lluvia: 'img/CarmenBLluvia.jpg'
+            },
+            policiaA: {
+                seco: 'img/PoliciaADespejado.jpg',
+                lluvia: 'img/PoliciaALluvia.jpg'
+            },
+            policiaB: {
+                seco: 'img/PoliciaBDespejado.jpg',
+                lluvia: 'img/PoliciaBLluvia.jpg'
+            },
+            finalPositivo: {
+                seco: 'img/FinalPositivoDespejado.jpg',
+                lluvia: 'img/FinalPositivoLluvia.jpg'
+            },
+            finalNegativo: {
+                seco: 'img/FinalNegativoDespejado.jpg',
+                lluvia: 'img/FinalNegativoLluvia.jpg'
+            }
+        };
+
+        function cambiarFondo(claveImagen) {
+            const fondo = document.getElementById('fondo-escenario');
+            if(imagenesEntorno[claveImagen]) {
+                // Selecciona automáticamente la variante según el estado del clima en tiempo real
+                const estadoClimaKey = gameState.esLluvia ? 'lluvia' : 'seco';
+                const urlImagen = imagenesEntorno[claveImagen][estadoClimaKey];
+                fondo.style.backgroundImage = `url('${urlImagen}')`;
+            }
+        }
+
+        function seleccionarRol(rol) {
+            gameState.rol = rol;
+            actualizarHUD();
+            reproducirEfecto('inicioRol');
+            
+            if(rol === 'habitante') {
+                cambiarFondo('habitanteInicio');
+                mostrarEscenaHabitanteFase1();
+            } else {
+                cambiarFondo('policiaInicio');
+                mostrarEscenaPoliciaFase1();
+            }
+        }
+
+        function actualizarHUD() {
+            gameState.tensionSocial = Math.min(100, Math.max(0, gameState.tensionSocial));
+            gameState.hostilidad = Math.min(100, Math.max(0, gameState.hostilidad));
+            document.getElementById('val-tension').innerText = gameState.tensionSocial;
+            document.getElementById('val-hostilidad').innerText = gameState.hostilidad;
+            
+            const spanRol = document.getElementById('rol-actual');
+            if (!gameState.rol) {
+                spanRol.innerText = 'Selección de Personaje';
+                spanRol.className = 'font-bold text-amber-500';
+            } else if (gameState.rol === 'habitante') {
+                spanRol.innerText = 'Doña Carmen';
+                spanRol.className = 'font-bold text-amber-400';
+            } else {
+                spanRol.innerText = 'Subintendente Andrés';
+                spanRol.className = 'font-bold text-cyan-400';
+            }
+        }
+
+        function evaluarTiradaIA(umbralBase = 50) {
+            let penalizacion = (gameState.tensionSocial + gameState.hostilidad) / 3;
+            let modClima = gameState.esLluvia ? 15 : 0;
+            let probabilidadExito = umbralBase - penalizacion - modClima;
+            probabilidadExito = Math.max(10, Math.min(90, probabilidadExito));
+
+            let tirada = Math.random() * 100;
+            let exito = tirada <= probabilidadExito;
+
+            return {
+                exito: exito,
+                probabilidad: Math.round(probabilidadExito),
+                tension: gameState.tensionSocial,
+                hostilidad: gameState.hostilidad,
+                lluvia: gameState.esLluvia
+            };
+        }
+
+        function mostrarEscenaHabitanteFase1() {
+            document.getElementById('escena-contenedor').innerHTML = `
+                <span class="text-xs font-mono text-amber-500 uppercase tracking-widest block mb-2">Ruta del Habitante - Escena Inicial</span>
+                <h2 class="text-xl md:text-2xl font-bold text-amber-400 mb-3">La llegada del ESMAD a Manrique</h2>
+                <p class="text-neutral-300 leading-relaxed mb-6 text-sm md:text-base">
+                    Carmen (52 años) vigila la puerta de su casa mientras el ESMAD avanza hacia el sector para desalojarlo. Sabe que no hay a dónde ir ni recursos económicos para un nuevo arriendo.
+                </p>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <button onclick="reproducirEfecto('resistenciaActiva'); avanzarCarmen('A')" class="p-6 bg-neutral-900/90 hover:bg-neutral-800 border border-neutral-800 rounded-2xl text-left transition cursor-pointer hover:border-amber-500 shadow-lg">
+                        <strong class="text-amber-400 block mb-1">Opción A: Resistencia Activa</strong>
+                        <p class="text-base text-neutral-300">"¡No nos van a echar como perros!" Ponerse al frente de los jóvenes y hacer una barricada junto a la comunidad para no permitir el paso.</p>
+                        <span class="text-xs text-red-400 mt-2 block">+ Sube la Tensión Social y la Hostilidad</span>
+                    </button>
+                    <button onclick="reproducirEfecto('resistenciaPacifica'); avanzarCarmen('B')" class="p-6 bg-neutral-900/90 hover:bg-neutral-800 border border-neutral-800 rounded-2xl text-left transition cursor-pointer hover:border-amber-500 shadow-lg">
+                        <strong class="text-amber-400 block mb-1">Opción B: Resistencia Pacífica</strong>
+                        <p class="text-base text-neutral-300">"No somos animales, por Dios." Organizar a la comunidad en una cadena humana pacífica con pancartas y veedores.</p>
+                        <span class="text-xs text-cyan-400 mt-2 block">- Baja la Tensión Social y la Hostilidad</span>
+                    </button>
+                </div>
+            `;
+        }
+
+        function avanzarCarmen(opcion) {
+            if(opcion === 'A') {
+                gameState.tensionSocial += 25;
+                gameState.hostilidad += 25;
+                actualizarHUD();
+                cambiarFondo('habitanteA');
+
+                document.getElementById('escena-contenedor').innerHTML = `
+                    <span class="text-xs font-mono text-red-500 uppercase tracking-widest block mb-2">Ruta del Habitante - Opción A (Alta Tensión)</span>
+                    <h2 class="text-xl md:text-2xl font-bold text-red-400 mb-3">Confrontación en el barrrio</h2>
+                    <p class="text-neutral-300 leading-relaxed mb-6 text-sm md:text-base">
+                        La fuerza pública responde con despliegue de tropas y gases lacrimógenos ante la barricada y los actos furiosos de la comunidad. Los ánimos están al límite en el barrio.
+                    </p>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <button onclick="reproducirEfecto('confrontacion'); resolverCarmenA1()" class="p-6 bg-neutral-900/90 hover:bg-neutral-800 border border-neutral-800 rounded-2xl text-left transition cursor-pointer hover:border-red-500 shadow-lg">
+                            <strong class="text-red-400 block">Opción A.1: Contraataque Directo</strong>
+                            <p class="text-base text-neutral-300">La desesperación te supera al ver a tus nietos toser por los gases. Iniciar junto a la comunidad el contraataque con piedras.</p>
+                            <span class="text-xs text-red-400 mt-2 block">+ Sube la Tensión Social y la Hostilidad</span>
+                        </button>
+                        <button onclick="reproducirEfecto('mediacion'); resolverCarmenA2()" class="p-6 bg-neutral-900/90 hover:bg-neutral-800 border border-neutral-800 rounded-2xl text-left transition cursor-pointer hover:border-emerald-500 shadow-lg">
+                            <strong class="text-emerald-400 block">Opción A.2: Apelar al Oficial al Mando</strong>
+                            <p class="text-base text-neutral-300">En medio del caos, dar un paso al frente con tu familia para mostrar la vulnerabilidad de la comunidad ante el oficial al mando. Ahora la decisión está en el subteniente Andrés, ¿cuál será su reacción?</p>
+                            <span class="text-xs text-cyan-400 mt-2 block">- Disminuye la tensión social, pero la hostilidad se mantiene.</span>
+                        </button>
+                    </div>
+                `;
+            } else {
+                gameState.tensionSocial -= 15;
+                gameState.hostilidad -= 10;
+                actualizarHUD();
+                cambiarFondo('habitanteB');
+
+                document.getElementById('escena-contenedor').innerHTML = `
+                    <span class="text-xs font-mono text-cyan-500 uppercase tracking-widest block mb-2">Ruta del Habitante - Opción B (Tensión Controlada)</span>
+                    <h2 class="text-xl md:text-2xl font-bold text-cyan-400 mb-3">La Cadena Humana y la Veeduría</h2>
+                    <p class="text-neutral-300 leading-relaxed mb-6 text-sm md:text-base">
+                        La presencia de veedores ciudadanos y la calma relativa desarman parcialmente el protocolo de desalojo violento.
+                    </p>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <button onclick="reproducirEfecto('concertacion'); resolverCarmenB1()" class="p-6 bg-neutral-900/90 hover:bg-neutral-800 border border-neutral-800 rounded-2xl text-left transition cursor-pointer hover:border-emerald-500 shadow-lg">
+                            <strong class="text-emerald-400 block">Opción B.1: Apertura de Mesa de Concertación</strong>
+                            <p class="text-base text-neutral-300">Confiar en la vía institucional y presionar con veedores para pactar subsidios reales de vivienda. Invitar al policía a que se una a la manifestación de forma empática. Ahora la decisión está en el subteniente Andrés, ¿cuál será su reacción?</p>
+                            <span class="text-xs text-cyan-400 mt-2 block">- Disminuye la tensión social, pero la hostilidad persiste.</span>
+                        </button>
+                        <button onclick="reproducirEfecto('rupturaDialogo'); resolverCarmenB2()" class="p-6 bg-neutral-900/90 hover:bg-neutral-800 border border-neutral-800 rounded-2xl text-left transition cursor-pointer hover:border-red-500 shadow-lg">
+                            <strong class="text-red-500 block">Opción B.2: Ruptura del Diálogo y Reocupación</strong>
+                            <p class="text-base text-neutral-300">Al notar que la alcaldía usa el diálogo como táctica de distracción, juntar a la comunidad para retomar violentamente el territorio.</p> 
+                            <span class="text-xs text-red-400 mt-2 block">+ Sube la tensión social y la hostilidad.</span>
+                        </button>
+                    </div>
+                `;
+            }
+        }
+
+        function resolverCarmenA1() {
+            gameState.tensionSocial += 20;
+            gameState.hostilidad += 20;
+            actualizarHUD();
+            resolverFinal('negativo1');
+        }
+
+        function resolverCarmenA2() {
+            gameState.tensionSocial -= 10;
+            actualizarHUD();
+            let resultadoIA = evaluarTiradaIA(50);
+            let razon = `Tensión en ${resultadoIA.tension}, Hostilidad en ${resultadoIA.hostilidad}. Probabilidad: ${resultadoIA.probabilidad}%. `;
+            
+            if (resultadoIA.exito) {
+                razon += "El oficial Andrés frenó la orden superior para abrir un canal de diálogo institucional.";
+                mostrarPantallaConRecuadroIA(resultadoIA, razon, 'positivo');
+            } else {
+                razon += "La presión superior superó la empatía del oficial, optando por continuar con el asedio y desalojo.";
+                mostrarPantallaConRecuadroIA(resultadoIA, razon, 'negativo2');
+            }
+        }
+
+        function resolverCarmenB1() {
+            gameState.tensionSocial -= 10;
+            actualizarHUD();
+            let resultadoIA = evaluarTiradaIA(55);
+            let razon = `Tensión en ${resultadoIA.tension}, Hostilidad en ${resultadoIA.hostilidad}. Probabilidad: ${resultadoIA.probabilidad}%. `;
+            
+            if (resultadoIA.exito) {
+                razon += "Se concretaron acuerdos reales de concertación con el oficial al mando.";
+                mostrarPantallaConRecuadroIA(resultadoIA, razon, 'positivo');
+            } else {
+                razon += "Los mandos superiores exigen continuar la operación y se desestimó la mesa.";
+                mostrarPantallaConRecuadroIA(resultadoIA, razon, 'negativo1');
+            }
+        }
+
+        function resolverCarmenB2() {
+            gameState.tensionSocial += 25;
+            gameState.hostilidad += 25;
+            actualizarHUD();
+            resolverFinal('dobleNegativo');
+        }
+
+        function mostrarEscenaPoliciaFase1() {
+            document.getElementById('escena-contenedor').innerHTML = `
+                <span class="text-xs font-mono text-cyan-500 uppercase tracking-widest block mb-2">Ruta del Policía - Escena Inicial</span>
+                <h2 class="text-xl md:text-2xl font-bold text-cyan-400 mb-3">La llegada del Subintendente Andrés</h2>
+                <p class="text-neutral-300 leading-relaxed mb-6 text-sm md:text-base">
+                    Andrés (38 años) llega a Manrique con órdenes estrictas de asegurar el perímetro para la intervención de desalojo.
+                </p>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <button onclick="reproducirEfecto('confrontacion'); avanzarPolicia('A')" class="p-6 bg-neutral-900/90 hover:bg-neutral-800 border border-neutral-800 rounded-2xl text-left transition cursor-pointer hover:border-cyan-500 shadow-lg">
+                        <strong class="text-cyan-400 block mb-1">Opción A: Protocolo Estricto de Desalojo</strong>
+                        <p class="text-base text-neutral-300">"Hay que cumplir la orden como sea." Avanzar con unidades antimotines sin importar quién esté en medio.</p>
+                        <span class="text-xs text-red-400 mt-2 block">+ Sube la Tensión Social y la Hostilidad</span>
+                    </button>
+                    <button onclick="reproducirEfecto('mediacion'); avanzarPolicia('B')" class="p-6 bg-neutral-900/90 hover:bg-neutral-800 border border-neutral-800 rounded-2xl text-left transition cursor-pointer hover:border-cyan-500 shadow-lg">
+                        <strong class="text-cyan-400 block mb-1">Opción B: Evaluación Táctica Prudente</strong>
+                        <p class="text-base text-neutral-300">Contener la tropa y evaluar el perfil de la comunidad antes de actuar.</p>
+                        <span class="text-xs text-emerald-400 mt-2 block">- Baja la Tensión Social y la Hostilidad</span>
+                    </button>
+                </div>
+            `;
+        }
+
+        function avanzarPolicia(opcion) {
+            if(opcion === 'A') {
+                gameState.tensionSocial += 25;
+                gameState.hostilidad += 25;
+                actualizarHUD();
+                cambiarFondo('policiaA');
+
+                document.getElementById('escena-contenedor').innerHTML = `
+                    <span class="text-xs font-mono text-red-500 uppercase tracking-widest block mb-2">Ruta del Policía - Opción A (Alta Presión)</span>
+                    <h2 class="text-xl md:text-2xl font-bold text-red-400 mb-3">Avanzada Táctica en la Pendiente</h2>
+                    <p class="text-neutral-300 leading-relaxed mb-6 text-sm md:text-base">
+                        La tropa presiona el perímetro mientras los habitantes bloquean los accesos con barricadas.
+                    </p>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <button onclick="reproducirEfecto('confrontacion'); resolverPoliciaA1()" class="p-6 bg-neutral-900/90 hover:bg-neutral-800 border border-neutral-800 rounded-2xl text-left transition cursor-pointer hover:border-red-500 shadow-lg">
+                            <strong class="text-red-400 block">Opción A.1: Carga Antidisturbios Inmediata</strong>
+                            <p class="text-base text-neutral-300">Presionado por la jerarquía, ordenar disparar gases de manera indiscriminada.</p>
+                            <span class="text-xs text-red-400 mt-2 block">+ Sube la tensión social y la hostilidad.</span>
+                        </button>
+                        <button onclick="reproducirEfecto('mediacion'); resolverPoliciaA2()" class="p-6 bg-neutral-900/90 hover:bg-neutral-800 border border-neutral-800 rounded-2xl text-left transition cursor-pointer hover:border-emerald-500 shadow-lg">
+                            <strong class="text-emerald-400 block">Opción A.2: Pausa Táctica y Mediación</strong>
+                            <p class="text-base text-neutral-300">Retroceder y pedir refuerzos, así como asistencia de veedores y personal de derechos humanos. Ahora la decisión está en doña Carmen y la comunidad, ¿cómo reaccionarán?</p>
+                            <span class="text-xs text-emerald-400 mt-2 block">- Disminuye la hostilidad, pero la tensión social persiste.</span>
+                        </button>
+                    </div>
+                `;
+            } else {
+                gameState.tensionSocial -= 15;
+                gameState.hostilidad -= 10;
+                actualizarHUD();
+                cambiarFondo('policiaB');
+
+                document.getElementById('escena-contenedor').innerHTML = `
+                    <span class="text-xs font-mono text-cyan-500 uppercase tracking-widest block mb-2">Ruta del Policía - Opción B (Contención)</span>
+                    <h2 class="text-xl md:text-2xl font-bold text-cyan-400 mb-3">Diálogo Perimetral</h2>
+                    <p class="text-neutral-300 leading-relaxed mb-6 text-sm md:text-base">
+                        Frenar la ofensiva inicial abre espacio para que los líderes del barrio se acerquen a conversar.
+                    </p>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <button onclick="reproducirEfecto('concertacion'); resolverPoliciaB1()" class="p-6 bg-neutral-900/90 hover:bg-neutral-800 border border-neutral-800 rounded-2xl text-left transition cursor-pointer hover:border-emerald-500 shadow-lg">
+                            <strong class="text-emerald-400 block">Opción B.1: Recibir Voceros del Barrio</strong>
+                            <p class="text-base text-neutral-300">Rechazar la manipulación de sus superiores corruptos y sentarse a dialogar con doña Carmen, la comunidad y los veedores. Ahora la decisión está en doña Carmen y la comunidad, ¿cómo reaccionarán?</p>
+                            <span class="text-xs text-emerald-400 mt-2 block">- Disminuye la hostilidad y se abre paso al entendimiento.</span>
+                        </button>
+                        <button onclick="reproducirEfecto('rupturaDialogo'); resolverPoliciaB2()" class="p-6 bg-neutral-900/90 hover:bg-neutral-800 border border-neutral-800 rounded-2xl text-left transition cursor-pointer hover:border-red-500 shadow-lg">
+                            <strong class="text-red-500 block">Opción B.2: Ordenar Desalojo General</strong>
+                            <p class="text-base text-neutral-300">Temeroso de perder tu puesto, traicionar la empatía y ordenar reanudar el desalojo a la fuerza.</p>
+                            <span class="text-xs text-red-400 mt-2 block">+ Sube la tensión social y la hostilidad.</span>
+                        </button>
+                    </div>
+                `;
+            }
+        }
+
+        function resolverPoliciaA1() {
+            gameState.tensionSocial += 20;
+            gameState.hostilidad += 20;
+            actualizarHUD();
+            resolverFinal('negativo1');
+        }
+
+        function resolverPoliciaA2() {
+            gameState.hostilidad -= 10;
+            actualizarHUD();
+            let resultadoIA = evaluarTiradaIA(50);
+            let razon = `Tensión en ${resultadoIA.tension}, Hostilidad en ${resultadoIA.hostilidad}. Probabilidad: ${resultadoIA.probabilidad}%. `;
+            
+            if (resultadoIA.exito) {
+                razon += "La comunidad aceptó el gesto de pausa y pasaron del conflicto a negociar.";
+                mostrarPantallaConRecuadroIA(resultadoIA, razon, 'positivo');
+            } else {
+                razon += "La comunidad interpretó la pausa como una trampa táctica y arreció el ataque con piedras.";
+                mostrarPantallaConRecuadroIA(resultadoIA, razon, 'negativo2');
+            }
+        }
+
+        function resolverPoliciaB1() {
+            gameState.hostilidad -= 10;
+            actualizarHUD();
+            let resultadoIA = evaluarTiradaIA(55);
+            let razon = `Tensión en ${resultadoIA.tension}, Hostilidad en ${resultadoIA.hostilidad}. Probabilidad: ${resultadoIA.probabilidad}%. `;
+            
+            if (resultadoIA.exito) {
+                razon += "La comunidad confió en la apertura de los voceros y se pactó una salida negociada.";
+                mostrarPantallaConRecuadroIA(resultadoIA, razon, 'positivo');
+            } else {
+                razon += "La desconfianza histórica impidió que los voceros controlaran a los jóvenes, colapsando el acuerdo.";
+                mostrarPantallaConRecuadroIA(resultadoIA, razon, 'negativo2');
+            }
+        }
+
+        function resolverPoliciaB2() {
+            gameState.tensionSocial += 25;
+            gameState.hostilidad += 25;
+            actualizarHUD();
+            resolverFinal('dobleNegativo');
+        }
+
+        function mostrarPantallaConRecuadroIA(datosIA, razonExplicativa, tipoFinal) {
+            let contenedor = document.getElementById('escena-contenedor');
+            let colorClase = datosIA.exito ? "text-emerald-400 border-emerald-500/40 bg-emerald-950/90" : "text-amber-400 border-amber-500/40 bg-amber-950/90";
+            let estadoTexto = datosIA.exito ? "Éxito en la Tirada (IA Conectada)" : "Fallo en la Tirada (IA Rechazada)";
+
+            if(datosIA.exito) {
+                cambiarFondo('finalPositivo');
+                reproducirEfecto('finalPositivo');
+            } else {
+                cambiarFondo('finalNegativo');
+                reproducirEfecto('finalNegativo');
+            }
+
+            contenedor.className = `w-full border p-6 md:p-8 rounded-3xl backdrop-blur-md shadow-2xl ${colorClase}`;
+            contenedor.innerHTML = `
+                <span class="text-xs font-mono uppercase tracking-widest block font-bold mb-2">Evaluación Algorítmica y del Entorno (IA)</span>
+                <h2 class="text-lg md:text-xl font-bold mb-3">${estadoTexto}</h2>
+                <p class="text-neutral-300 leading-relaxed text-sm md:text-base mb-6">${razonExplicativa}</p>
+                <div class="flex gap-6 text-xs font-mono opacity-90 border-t border-neutral-700/60 pt-3 mb-6">
+                    <span>Tensión: ${datosIA.tension}</span>
+                    <span>Hostilidad: ${datosIA.hostilidad}</span>
+                    <span>Probabilidad: ${datosIA.probabilidad}%</span>
+                </div>
+                <div>
+                    <button onclick="reproducirEfecto('click'); resolverFinal('${tipoFinal}')" class="p-5 bg-neutral-900 hover:bg-neutral-800 text-neutral-100 font-bold text-base rounded-2xl transition border border-neutral-700 cursor-pointer shadow-lg w-full md:w-auto px-10">
+                        Ver Desenlace del Sistema
+                    </button>
+                </div>
+            `;
+        }
+
+        function resolverFinal(tipoFinal) {
+            let contenedor = document.getElementById('escena-contenedor');
+            let titulo = "";
+            let texto = "";
+            let colorClase = "";
+
+            if(tipoFinal === 'positivo') {
+                cambiarFondo('finalPositivo');
+                reproducirEfecto('finalPositivo');
+                titulo = "FINAL POSITIVO: Concertación y Transformación Social";
+                texto = "La articulación entre el pueblo y un sector consciente del Estado genera una masiva presión ciudadana. La administración distrital suspende el desalojo de forma definitiva y ofrece soluciones reales de vivienda digna.";
+                colorClase = "text-emerald-400 border-emerald-500/40 bg-emerald-950/90";
+            } else if(tipoFinal === 'negativo1') {
+                cambiarFondo('finalNegativo');
+                reproducirEfecto('finalNegativo');
+                titulo = "FINAL NEGATIVO: Tragedia Institucional";
+                texto = "La fuerza del Estado aplasta a la comunidad; la represión deja heridos graves y viviendas arrasadas. El oficial se convierte en un chivo expiatorio de un sistema burocrático inflexible.";
+                colorClase = "text-red-400 border-red-500/40 bg-red-950/90";
+            } else if(tipoFinal === 'negativo2') {
+                cambiarFondo('finalNegativo');
+                reproducirEfecto('finalNegativo');
+                titulo = "FINAL NEGATIVO: Tragedia Comunitaria";
+                texto = "El desalojo forzoso se ejecuta sin piedad y la comunidad responde con desesperación violenta en el barrio. La turba supera numéricamente al policía y este es agredido fatalmente. La comunidad sufre una represión extrema y la destrucción total del sector.";
+                colorClase = "text-amber-400 border-amber-500/40 bg-amber-950/90";
+            } else if(tipoFinal === 'dobleNegativo') {
+                cambiarFondo('finalNegativo');
+                reproducirEfecto('finalNegativo');
+                titulo = "FINAL DOBLE NEGATIVO: Ruptura Total del Tejido Social";
+                texto = "La violencia y la represión total se convierten en la única respuesta institucional y comunitaria. El barrio Brisas de Jardín se convierte en un escenario de batalla campal generalizada con múltiples heridos de gravedad en ambos bandos, destrucción total de las viviendas y una ruptura definitiva e irreconciliable entre la ciudadanía y las instituciones del Estado. La violencia se consagra como la única y trágica respuesta permanente.";
+                colorClase = "text-red-500 border-red-600/50 bg-red-950/95";
+            }
+
+            contenedor.className = `w-full border p-6 md:p-8 rounded-3xl backdrop-blur-md shadow-2xl ${colorClase}`;
+            contenedor.innerHTML = `
+                <span class="text-xs font-mono uppercase tracking-widest block font-bold mb-2">Desenlace del Sistema Arborescente</span>
+                <h2 class="text-lg md:text-xl font-bold mb-3">${titulo}</h2>
+                <p class="text-neutral-300 leading-relaxed text-sm md:text-base mb-6">${texto}</p>
+                <div>
+                    <button onclick="reproducirEfecto('click'); location.reload()" class="p-5 bg-neutral-900 hover:bg-neutral-800 text-neutral-100 font-bold text-base rounded-2xl transition border border-neutral-700 cursor-pointer shadow-lg w-full md:w-auto px-10">
+                        Reiniciar Experiencia Multimedia
+                    </button>
+                </div>
+            `;
+        }
+    </script>
+</body>
+</html>
